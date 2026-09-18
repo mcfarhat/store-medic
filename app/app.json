@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Store Medic",
+    "slug": "store-medic",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": { "backgroundColor": "#0B1220" },
+    "android": {
+      "package": "com.mcfarhat.storemedic",
+      "versionCode": 1
+    },
+    "ios": {
+      "bundleIdentifier": "com.mcfarhat.storemedic",
+      "supportsTablet": false
+    },
+    "extra": {
+      "engineUrl": "https://REPLACE-with-engine-host",
+      "revenueCatApiKeyAndroid": "REPLACE",
+      "revenueCatApiKeyIos": "REPLACE"
+    }
+  }
+}
