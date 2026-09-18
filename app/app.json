@@ -5,7 +5,9 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "splash": { "backgroundColor": "#0B1220" },
+    "splash": {
+      "backgroundColor": "#0B1220"
+    },
     "android": {
       "package": "com.mcfarhat.storemedic",
       "versionCode": 1
@@ -17,7 +19,11 @@
     "extra": {
       "engineUrl": "https://storemedic-api.greateck.com",
       "revenueCatApiKeyAndroid": "test_PmsVNxopHKJDjapKyQZaahIgVZf",
-      "revenueCatApiKeyIos": "test_PmsVNxopHKJDjapKyQZaahIgVZf"
-    }
+      "revenueCatApiKeyIos": "test_PmsVNxopHKJDjapKyQZaahIgVZf",
+      "eas": {
+        "projectId": "b55ed436-2407-423a-b73a-bdbbde0d050f"
+      }
+    },
+    "owner": "mcfarhat"
   }
 }
