@@ -1,6 +1,7 @@
 // Dev probe: prove the engine authenticates to a live WooCommerce store and runs the pipeline.
 // Run: (env from .env) npx tsx src/probe.ts
 import { scanStore } from "./watchers/woo.js";
+import { scanHealth } from "./watchers/wphealth.js";
 import { verify } from "./verify.js";
 
 const cfg = {
@@ -18,11 +19,13 @@ if (r.ok) {
   console.log("PRODUCTS(sample):", (products as any[]).map((p) => `${p.name} [${p.stock_status}]`).join(", "));
 }
 
-// 2) Run the watcher + verify pipeline.
-const signals = await scanStore(cfg);
+// 2) Run all watchers + verify pipeline.
+const signals = [...(await scanStore(cfg)), ...(await scanHealth(cfg))];
 console.log(`\nSCAN: ${signals.length} raw signal(s)`);
 for (const s of signals) {
   const v = await verify(s);
-  console.log(`- ${s.kind} (${s.severity}) -> ${v ? "VERIFIED" : "dropped"} | ${s.title}`);
+  const cited = v?.evidence.some((e) => e.startsWith("Source:")) ? " (cited)" : "";
+  console.log(`- [${s.severity}] ${s.kind}: ${s.title} -> ${v ? "VERIFIED" + cited : "dropped"}`);
+  if (v?.suggestedFix) console.log(`    fix: ${v.suggestedFix}`);
 }
 if (signals.length === 0) console.log("(store looks healthy right now — no issues to report)");

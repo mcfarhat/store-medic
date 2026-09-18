@@ -13,7 +13,7 @@ export interface VerifiedFinding {
   suggestedFix?: string;
 }
 
-// Optional: pull an authoritative source/citation for a known problem class.
+// Pull an authoritative source/citation for a known problem class (best-effort).
 async function tavilyCite(query: string): Promise<string | null> {
   const key = process.env.TAVILY_API_KEY;
   if (!key) return null;
@@ -57,6 +57,22 @@ export async function verify(signal: RawSignal): Promise<VerifiedFinding | null>
       if (cite) evidence.push(cite);
       break;
     }
+    case "plugin_outdated": {
+      const name = String((signal.raw as any).plugin ?? "");
+      const latest = String((signal.raw as any).latest ?? "");
+      suggestedFix = `Update ${name} to ${latest} (test on staging first).`;
+      const cite = await tavilyCite(`${name} WordPress plugin ${latest} changelog security fixes`);
+      if (cite) evidence.push(cite);
+      break;
+    }
+    case "insecure_connection": {
+      suggestedFix = "Install/renew an SSL certificate and force HTTPS site-wide.";
+      break;
+    }
+    case "php_outdated": {
+      suggestedFix = "Upgrade PHP to 8.1+ in your hosting panel after testing on staging.";
+      break;
+    }
     case "stockout": {
       suggestedFix = "Restock or hide the product; enable back-in-stock notifications.";
       break;
@@ -69,5 +85,12 @@ export async function verify(signal: RawSignal): Promise<VerifiedFinding | null>
       break;
   }
 
-  return { kind: signal.kind, severity: signal.severity, title: signal.title, detail: signal.detail, evidence, suggestedFix };
+  return {
+    kind: signal.kind,
+    severity: signal.severity,
+    title: signal.title,
+    detail: signal.detail,
+    evidence,
+    suggestedFix,
+  };
 }

@@ -2,8 +2,10 @@
 // records findings for the app to show. Nothing acts on the store without owner approval.
 import cron from "node-cron";
 import { scanStore } from "./watchers/woo.js";
+import { scanHealth } from "./watchers/wphealth.js";
 import { verify } from "./verify.js";
-import { addFinding, alreadyOpen, setStatus, type Finding } from "./store.js";
+import { applyFix } from "./fixes.js";
+import { addFinding, alreadyOpen, getFinding, setStatus, type Finding } from "./store.js";
 
 function wooConfig() {
   return {
@@ -20,10 +22,11 @@ export async function runCycle(storeId = "default"): Promise<Finding[]> {
     return [];
   }
   const created: Finding[] = [];
-  const signals = await scanStore(cfg);
+  // WATCH: run all watchers and merge their raw signals.
+  const signals = [...(await scanStore(cfg)), ...(await scanHealth(cfg))];
   for (const sig of signals) {
-    if (alreadyOpen(storeId, sig.kind)) continue; // dedupe: don't re-alert an open problem
-    const v = await verify(sig);
+    if (alreadyOpen(storeId, sig.kind, sig.title)) continue; // dedupe: don't re-alert an open problem
+    const v = await verify(sig); // VERIFY: confirm + attach evidence + suggest fix
     if (!v) continue; // verify rejected it (false positive / recovered)
     created.push(addFinding({ storeId, ...v }));
   }
@@ -31,11 +34,14 @@ export async function runCycle(storeId = "default"): Promise<Finding[]> {
   return created;
 }
 
-// Approve = execute the suggested fix. In the scaffold we just transition state;
-// real fix actions (toggle stock, clear cache, disable a plugin) are added per-kind.
+// APPROVE: run the suggested fix action for a finding. With a read-only key most fixes are
+// advisory (recorded, needs write access); write actions activate when a write key is set.
 export function approve(findingId: string): Finding | undefined {
-  const f = setStatus(findingId, "approved");
-  // TODO: dispatch the concrete fix action for f.kind, then mark resolved.
+  const f = getFinding(findingId);
+  if (!f) return undefined;
+  const result = applyFix(f);
+  f.fix = result.message;
+  setStatus(findingId, result.applied ? "resolved" : "approved");
   return f;
 }
 

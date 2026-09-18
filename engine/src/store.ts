@@ -10,12 +10,13 @@ export type FindingStatus =
 export interface Finding {
   id: string;
   storeId: string;
-  kind: string; // e.g. "checkout_broken", "plugin_outdated", "stockout", "price_undercut"
+  kind: string; // e.g. "site_down", "orders_failing", "plugin_outdated", "stockout"
   severity: Severity;
   title: string;
   detail: string;
   evidence: string[]; // human-readable lines, incl. Tavily-cited sources
   suggestedFix?: string;
+  fix?: string; // outcome recorded when the owner approves
   status: FindingStatus;
   createdAt: string;
 }
@@ -30,6 +31,10 @@ export function addFinding(f: Omit<Finding, "id" | "status" | "createdAt">): Fin
   return rec;
 }
 
+export function getFinding(id: string): Finding | undefined {
+  return findings.get(id);
+}
+
 export function listFindings(storeId?: string): Finding[] {
   const all = [...findings.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return storeId ? all.filter((f) => f.storeId === storeId) : all;
@@ -42,8 +47,13 @@ export function setStatus(id: string, status: FindingStatus): Finding | undefine
 }
 
 // Dedupe key so we don't re-alert the same open problem every cycle.
-export function alreadyOpen(storeId: string, kind: string): boolean {
+export function alreadyOpen(storeId: string, kind: string, title: string): boolean {
   return [...findings.values()].some(
-    (f) => f.storeId === storeId && f.kind === kind && f.status !== "resolved" && f.status !== "dismissed",
+    (f) =>
+      f.storeId === storeId &&
+      f.kind === kind &&
+      f.title === title &&
+      f.status !== "resolved" &&
+      f.status !== "dismissed",
   );
 }
