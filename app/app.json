@@ -15,7 +15,7 @@
       "supportsTablet": false
     },
     "extra": {
-      "engineUrl": "https://REPLACE-with-engine-host",
+      "engineUrl": "https://storemedic-api.greateck.com",
       "revenueCatApiKeyAndroid": "REPLACE",
       "revenueCatApiKeyIos": "REPLACE"
     }
