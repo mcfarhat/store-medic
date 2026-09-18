@@ -3,7 +3,7 @@ import { Platform } from "react-native";
 import Purchases, { type CustomerInfo } from "react-native-purchases";
 import Constants from "expo-constants";
 
-const PRO_ENTITLEMENT = "pro";
+const PRO_ENTITLEMENT = "store_medic_pro";
 
 export function initRevenueCat(): void {
   const extra = Constants.expoConfig?.extra ?? {};
