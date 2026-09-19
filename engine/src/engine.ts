@@ -22,24 +22,23 @@ export async function runCycle(storeId = "default"): Promise<Finding[]> {
     return [];
   }
   const created: Finding[] = [];
-  // WATCH: run all watchers and merge their raw signals.
   const signals = [...(await scanStore(cfg)), ...(await scanHealth(cfg))];
   for (const sig of signals) {
-    if (alreadyOpen(storeId, sig.kind, sig.title)) continue; // dedupe: don't re-alert an open problem
-    const v = await verify(sig); // VERIFY: confirm + attach evidence + suggest fix
-    if (!v) continue; // verify rejected it (false positive / recovered)
-    created.push(addFinding({ storeId, ...v }));
+    if (alreadyOpen(storeId, sig.kind, sig.title)) continue;
+    const v = await verify(sig);
+    if (!v) continue;
+    created.push(addFinding({ storeId, ...v, meta: sig.raw }));
   }
   console.log(`[engine] cycle for ${storeId}: ${signals.length} signals -> ${created.length} new findings`);
   return created;
 }
 
-// APPROVE: run the suggested fix action for a finding. With a read-only key most fixes are
-// advisory (recorded, needs write access); write actions activate when a write key is set.
-export function approve(findingId: string): Finding | undefined {
+// APPROVE: run the fix action for a finding. Marks "resolved" if actually applied,
+// else "approved" (advisory recorded). Returns the updated finding incl. the fix outcome.
+export async function approve(findingId: string): Promise<Finding | undefined> {
   const f = getFinding(findingId);
   if (!f) return undefined;
-  const result = applyFix(f);
+  const result = await applyFix(f);
   f.fix = result.message;
   setStatus(findingId, result.applied ? "resolved" : "approved");
   return f;

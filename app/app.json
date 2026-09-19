@@ -18,6 +18,7 @@
     },
     "extra": {
       "engineUrl": "https://storemedic-api.greateck.com",
+      "apiKey": "2fc88b7353648963dd4796e0a708f754",
       "revenueCatApiKeyAndroid": "test_PmsVNxopHKJDjapKyQZaahIgVZf",
       "revenueCatApiKeyIos": "test_PmsVNxopHKJDjapKyQZaahIgVZf",
       "eas": {

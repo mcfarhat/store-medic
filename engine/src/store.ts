@@ -10,13 +10,14 @@ export type FindingStatus =
 export interface Finding {
   id: string;
   storeId: string;
-  kind: string; // e.g. "site_down", "orders_failing", "plugin_outdated", "stockout"
+  kind: string;
   severity: Severity;
   title: string;
   detail: string;
-  evidence: string[]; // human-readable lines, incl. Tavily-cited sources
+  evidence: string[];
   suggestedFix?: string;
   fix?: string; // outcome recorded when the owner approves
+  meta?: Record<string, unknown>; // raw signal data (e.g. plugin slug) for fix execution
   status: FindingStatus;
   createdAt: string;
 }
@@ -46,7 +47,6 @@ export function setStatus(id: string, status: FindingStatus): Finding | undefine
   return f;
 }
 
-// Dedupe key so we don't re-alert the same open problem every cycle.
 export function alreadyOpen(storeId: string, kind: string, title: string): boolean {
   return [...findings.values()].some(
     (f) =>

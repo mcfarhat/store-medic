@@ -1,7 +1,7 @@
-// App entry: init RevenueCat, show the store-health feed, and gate Pro behind the paywall.
+// App entry: init RevenueCat, show the dashboard, gate Pro behind the paywall.
 import { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import StoreHealthScreen from "./src/screens/StoreHealthScreen";
+import DashboardScreen from "./src/screens/DashboardScreen";
 import PaywallScreen from "./src/screens/PaywallScreen";
 import { initRevenueCat, isPro } from "./src/lib/revenuecat";
 
@@ -11,8 +11,6 @@ export default function App() {
 
   useEffect(() => {
     initRevenueCat();
-    // Free users can use 1 store; the paywall is shown when they hit a Pro gate.
-    // Here we just resolve initial entitlement state.
     isPro().finally(() => setReady(true));
   }, []);
 
@@ -24,7 +22,7 @@ export default function App() {
       {showPaywall ? (
         <PaywallScreen onDone={() => setShowPaywall(false)} />
       ) : (
-        <StoreHealthScreen />
+        <DashboardScreen onOpenPaywall={() => setShowPaywall(true)} />
       )}
     </>
   );

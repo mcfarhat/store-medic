@@ -1,6 +1,5 @@
 // WordPress/WooCommerce health watcher via the WooCommerce System Status endpoint
-// (/wc/v3/system_status, read scope). Surfaces outdated plugins, insecure config, old PHP —
-// the slow-burning problems that get stores hacked or break checkout after an update.
+// (/wc/v3/system_status, read scope). Surfaces outdated plugins, insecure config, old PHP.
 import type { RawSignal } from "./woo.js";
 
 interface WooConfig {
@@ -25,22 +24,22 @@ export async function scanHealth(c: WooConfig): Promise<RawSignal[]> {
     return signals;
   }
 
-  // Outdated active plugins (WooCommerce reports version + version_latest).
+  // Outdated active plugins (WooCommerce reports version + version_latest; plugin path -> slug).
   for (const p of (sys.active_plugins ?? []) as any[]) {
     const cur = String(p.version ?? "");
     const latest = String(p.version_latest ?? "");
     if (latest && cur && latest !== cur) {
+      const slug = String(p.plugin ?? "").split("/")[0]; // e.g. "wordfence/wordfence.php" -> "wordfence"
       signals.push({
         kind: "plugin_outdated",
         severity: "warning",
         title: `Update available: ${p.name}`,
         detail: `${p.name} is on ${cur}; ${latest} is available (outdated plugins are the #1 hack vector)`,
-        raw: { plugin: p.name, current: cur, latest },
+        raw: { plugin: p.name, slug, current: cur, latest },
       });
     }
   }
 
-  // Store not served securely.
   if (sys.security && sys.security.secure_connection === false) {
     signals.push({
       kind: "insecure_connection",
@@ -51,7 +50,6 @@ export async function scanHealth(c: WooConfig): Promise<RawSignal[]> {
     });
   }
 
-  // End-of-life PHP.
   const php = String(sys.environment?.php_version ?? "");
   if (php && /^[0-7]\./.test(php)) {
     signals.push({
