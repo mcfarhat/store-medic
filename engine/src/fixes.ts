@@ -46,6 +46,9 @@ export async function applyFix(f: Finding): Promise<FixResult> {
       return { applied: false, message: "Install/renew SSL and force HTTPS (server-level). Flagged for your host." };
     case "php_outdated":
       return { applied: false, message: "Bump PHP to 8.1+ in the hosting panel. Test on staging first." };
+    case "ssl_expiring":
+    case "ssl_expired":
+      return { applied: false, message: "Renew SSL / enable auto-renewal (Let's Encrypt or Cloudflare)." };
     case "stockout":
       return { applied: false, message: "Restock or hide the product and enable back-in-stock alerts." };
     case "orders_failing":

@@ -73,6 +73,11 @@ export async function verify(signal: RawSignal): Promise<VerifiedFinding | null>
       suggestedFix = "Upgrade PHP to 8.1+ in your hosting panel after testing on staging.";
       break;
     }
+    case "ssl_expiring":
+    case "ssl_expired": {
+      suggestedFix = "Renew the SSL certificate (or enable auto-renewal via your host/Let's Encrypt/Cloudflare).";
+      break;
+    }
     case "stockout": {
       suggestedFix = "Restock or hide the product; enable back-in-stock notifications.";
       break;

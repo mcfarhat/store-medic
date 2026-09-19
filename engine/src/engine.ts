@@ -3,6 +3,7 @@
 import cron from "node-cron";
 import { scanStore } from "./watchers/woo.js";
 import { scanHealth } from "./watchers/wphealth.js";
+import { scanUniversal } from "./universal.js";
 import { verify } from "./verify.js";
 import { applyFix } from "./fixes.js";
 import { addFinding, alreadyOpen, getFinding, setStatus, type Finding } from "./store.js";
@@ -22,7 +23,11 @@ export async function runCycle(storeId = "default"): Promise<Finding[]> {
     return [];
   }
   const created: Finding[] = [];
-  const signals = [...(await scanStore(cfg)), ...(await scanHealth(cfg))];
+  const signals = [
+    ...(await scanStore(cfg)),
+    ...(await scanHealth(cfg)),
+    ...(await scanUniversal(cfg.storeUrl)),
+  ];
   for (const sig of signals) {
     if (alreadyOpen(storeId, sig.kind, sig.title)) continue;
     const v = await verify(sig);

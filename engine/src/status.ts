@@ -1,5 +1,7 @@
 // Full store health snapshot for the app dashboard. Returns EVERY monitored check with a
 // pass/warn/fail status — so the app shows the agent's breadth even when the store is healthy.
+import { sslDaysLeft } from "./universal.js";
+
 interface WooConfig {
   storeUrl: string;
   consumerKey: string;
@@ -66,6 +68,19 @@ export async function buildStatus(c: WooConfig): Promise<StoreStatus> {
     if (r.ok) {
       const total = Number(r.headers.get("x-wp-total") ?? "0");
       checks.push({ key: "orders", label: "Checkout & payments", status: total > 0 ? "critical" : "ok", detail: total > 0 ? `${total} failed order(s)` : "No failed orders" });
+    }
+  } catch { /* ignore */ }
+
+  // Universal: SSL certificate expiry (works on any store URL, no API needed).
+  try {
+    const host = new URL(c.storeUrl).host;
+    const days = await sslDaysLeft(host);
+    if (days !== null) {
+      checks.push({
+        key: "ssl", label: "SSL certificate",
+        status: days < 0 ? "critical" : days <= 21 ? "warning" : "ok",
+        detail: days < 0 ? "Expired" : `Valid · ${days}d left`,
+      });
     }
   } catch { /* ignore */ }
 
